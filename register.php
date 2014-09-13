@@ -1,8 +1,8 @@
 <?php
+	require_once 'core/init.php';
 	// Header.php 
 	include_once('includes/partials/header.php');
-
-	require_once 'core/init.php';
+	
 
 	
 ?>
@@ -53,7 +53,8 @@
 							                'user_pass' => md5(input::get('pass'))
 							            ));
 
-							            //session::flash('home', 'You have been registered and can now log in!');
+							            session::flash('home', 'You have been registered and can now log in!');
+							            
 							            Redirect::to('login.php');
 							        } catch (Exception $e) {
 							            die($e->getMessage());
@@ -95,6 +96,8 @@
 	                 
 	                 <input type="hidden" name="token" value="<?php echo token::generate(); ?>">
 	                 <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+
+	                 </br>	 
 	            </form>
 
 	        </div>

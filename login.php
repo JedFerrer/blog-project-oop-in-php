@@ -1,7 +1,8 @@
 <?php
+	require_once 'core/init.php';
 	// Header.php 
 	include_once('includes/partials/header.php');
-	require_once 'core/init.php';	
+		
 ?>
 
 <div class="content-container">
@@ -9,7 +10,13 @@
 		<div class="form-container">
 
 			<form method="post"  role="form" action="">
-				
+
+				<?php if(Session::exists('home')) { ?>
+					<div class="alert alert-success" role="alert">
+						<?php echo '<p>' . Session::flash('home') . '</p>' ; ?>
+					</div>
+				<?php } ?>
+
 				 <div class="form-header-top-container">
 				 	<h2><strong>User Login</strong></h2>
 				 </div>
@@ -65,9 +72,7 @@
 				 </div>
 				 <input type="hidden" name="token" value="<?php echo token::generate(); ?>">
 				 <button type="submit" class="btn btn-primary btn-block">Sign In</button>
-				 </br>
-				 <?php echo '<a href="register.php" class="sign-up">Sign Up</a>'; ?>
-				 
+				 </br> 
 			</form>
 		</div>
 

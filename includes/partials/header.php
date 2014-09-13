@@ -35,14 +35,16 @@
                 </div>
                 <div class="link-top-container">
                 <?php 
-                // if(isset($_SESSION['myemail'])) { 
-                //     echo '<a href="logout.php" class="sign-up">Log Out</a>';
-                // } elseif (!isset($_SESSION['myemail'])) {
-                //     echo '<a href="login.php" class="sign-up">Sign In</a>';
-                //     //unset($_SESSION['activepage']);
-                // // } else {
-                // //     echo '<a href="sign-up.php" class="sign-up">Sign Up</a>';
-                // }
+                $user = new User();
+                if($user->isLoggedIn()) {
+                ?>
+                    <p>Hello <a href="#"><?php echo escape($user->data()->author_name); ?></a>!</p>
+                    <p><a href="logout.php">Log out</a></li></p>
+                    
+                <?php
+                } else {
+                    echo '<p>You need to <a href="login.php">Log In</a> or <a href="register.php">Register</a></p>';
+                }
                 ?>
                 </div>
                 <div class="clear"></div>

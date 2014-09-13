@@ -90,7 +90,8 @@ body {
 	padding: 46px 0;
 }
 .link-top-container a {
-	padding: 46px 0;
+	/*padding: 46px 0;*/
+	padding: 0;
 }
 .footer-container {
 	/*padding-top: 20px;*/

@@ -1,10 +1,8 @@
-<?php include_once('includes/partials/header.php'); ?>
-
-
-
-
-
-
+<?php 
+    require_once 'core/init.php';
+    //Header
+    include_once('includes/partials/header.php'); 
+?>
 
 
 <div class="content-container">
@@ -12,8 +10,137 @@
       
         <div class="blog-container">
             <div>
+            <div class="textbox-wrapper">
+
+                
+                <?php
+                    $user = new User();
+                    if($user->isLoggedIn()) {
+                        $author_id = $user->data()->id;
+                ?>
+                <?php 
+                        if(Input::exist()) {
+                            if(Token::check(Input::get('token'))) {
+                                //echo "submitted";
+                                //echo Input::get('name');
+
+                                $validate = new validate();
+                                $validation = $validate->check($_POST, array(
+                                    'title' => array(
+                                        'required' => true
+                                    ),
+                                    'message' => array(
+                                        'required' => true,
+                                    )
+                                ));
+
+                                if($validation->passed()) {
+                                    $post = new Post();
+                                    try {
+                                        $dateToday = date("Y-m-d");
+                                        $excerpt = implode(' ', array_slice(explode(' ', input::get('message')), 0, 50));
+                                        $post->create(array(
+                                            'post_date' => $dateToday,
+                                            'post_title' => input::get('title'),
+                                            'post_content' => input::get('message'),
+                                            'post_excerpt' => $excerpt,
+                                            'author_id' => $author_id
+                                        ));
+                                    } catch (Exception $e) {
+                                        die($e->getMessage());
+                                    }
+
+                                } else {
+                ?>
+                                    <div class="bg-danger validation-errors">
+                                    <p>The following errors are encountered</p>
+                                        <ul>
+                <?php
+                                            foreach($validation->errors() as $error) {
+                                                echo '<li>', $error, '</li>';
+                                            }
+                ?>
+                                        </ul>
+                                    </div>
+                <?php
+                                }
+                            }
+                        }
+                ?>
+                        <form class="post-form" action="" method="POST">
+                            <div class="form-group">
+                                <p>Title</p>
+                                <input type="text" class="form-control" name="title" maxlength="50" value="<?php if(isset($_SESSION['post_title_add'])) { echo $_SESSION['post_title_add']; } ?>" placeholder="Title Input">
+                                <div class="clear"></div>
+                            </div>
+                          
+                            <div class="form-group">
+                                <p>Post</p>
+                                <textarea class="form-control" name="message" rows="3" maxlenght="500" placeholder="Post Input"><?php if(isset($_SESSION['post_title_add'])) { echo $_SESSION['post_content_add']; } ?></textarea>
+                                <div class="clear"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <input type="hidden" name="token" value="<?php echo token::generate(); ?>">
+                                <button type="submit" class="btn btn-default">Post</button>
+                            </div>                        
+                        </form>
+                <?php
+
+                           
+                        $post = DB::getInstance()->query("SELECT * FROM blog_post WHERE author_id = '$author_id' ORDER BY id DESC LIMIT 10");
+                    
+                        if(!$post->count()) {
+                            echo 'No user';
+                        } else {
+                            //looping through the results
+                            foreach($post->results() as $post) { 
+                        ?>
+                                <div class="entries-container">
+                                <div class="title-date-container">
+                                    <h5><?php echo $post->post_date; ?></h5>
+                                    <h2><?php echo "<a href='single.php?id=".$post->id."'>".$post->post_title."</a> &nbsp;"; ?></h2>
+                                </div>
+                                <div class="post-content-container">
+                                    <p><?php echo $post->post_excerpt; ?></p>
+                                        <?php
+                                            echo "<a href='update.php?id=".$post->id."'>Edit</a> &nbsp;";
+                                            echo "<a href='delete.php?id=".$post->id."'>Delete</a>";
+                                        ?>
+                                    </div>  
+                                    <h2 class="devider"></h2>
+                                </div> 
+                <?php
+                            }
+
+                        } 
+                    } else {
+                        $post = DB::getInstance()->query("SELECT * FROM blog_post ORDER BY id DESC LIMIT 10");
+
+                        if(!$post->count()) {
+                            echo 'No user';
+                        } else {
+                            //echo 'OK!';
+                            //looping through the results
+                            foreach($post->results() as $post) {
+                ?>
+                                <div class="entries-container">
+                                <div class="title-date-container">
+                                    <h5><?php echo $post->post_date; ?></h5>
+                                    <h2><?php echo "<a href='single.php?id=".$post->id."'>".$post->post_title."</a> &nbsp;"; ?></h2>
+                                </div>
+                                <div class="post-content-container">
+                                    <p><?php echo $post->post_excerpt; ?></p>
+                                    </div>  
+                                    <h2 class="devider"></h2>
+                                </div> 
+                <?php
+                            }
+                        } 
+                    }
+                ?>
             
-                <div class="textbox-wrapper">
+                
                     <?php if(isset($_SESSION['myemail'])) { ?>
                      
                         <?php if((isset($_SESSION['title_Err_Add'])) or (isset($_SESSION['message_Err_Add']))) { ?>
