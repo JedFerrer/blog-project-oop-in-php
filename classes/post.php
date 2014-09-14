@@ -37,10 +37,6 @@
 			}
 		}
 
-		public function pagination() {
-
-		}
-
 		public function data() {
 			return $this->_data;
 		}

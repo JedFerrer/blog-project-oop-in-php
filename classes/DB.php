@@ -136,7 +136,9 @@
 			return $this->_count;
 		}
 
-
+		public static function pdo() {
+			return $this->_pdo;
+		}
 
 
 

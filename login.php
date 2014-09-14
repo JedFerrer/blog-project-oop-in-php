@@ -2,8 +2,14 @@
 	require_once 'core/init.php';
 	// Header.php 
 	include_once('includes/partials/header.php');
-		
+	
+	$user = new User();
+    if($user->isLoggedIn()) {
+    	Redirect::to('index.php');
+    }	
 ?>
+
+
 
 <div class="content-container">
 	<div class="main-content-centered">

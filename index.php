@@ -4,21 +4,19 @@
     include_once('includes/partials/header.php'); 
 ?>
 
-
 <div class="content-container">
     <div class="main-content-centered">
-      
         <div class="blog-container">
             <div>
             <div class="textbox-wrapper">
-
-                
-                <?php
+<?php
                     $user = new User();
+                    $paginate = new Pagination();
+
                     if($user->isLoggedIn()) {
                         $author_id = $user->data()->id;
-                ?>
-                <?php 
+?>
+<?php 
                         if(Input::exist()) {
                             if(Token::check(Input::get('token'))) {
                                 //echo "submitted";
@@ -51,22 +49,22 @@
                                     }
 
                                 } else {
-                ?>
+?>
                                     <div class="bg-danger validation-errors">
                                     <p>The following errors are encountered</p>
                                         <ul>
-                <?php
+<?php
                                             foreach($validation->errors() as $error) {
                                                 echo '<li>', $error, '</li>';
                                             }
-                ?>
+?>
                                         </ul>
                                     </div>
-                <?php
+<?php
                                 }
                             }
                         }
-                ?>
+?>
                         <form class="post-form" action="" method="POST">
                             <div class="form-group">
                                 <p>Title</p>
@@ -85,17 +83,32 @@
                                 <button type="submit" class="btn btn-default">Post</button>
                             </div>                        
                         </form>
-                <?php
+<?php
+                        $paginate->pagination('3', $author_id);
+                        $start = $paginate->start();
+                        $per_page = $paginate->perpage();
+                        $pages = $paginate->pages();
+                        $page = $paginate->page();
 
-                           
-                        $post = DB::getInstance()->query("SELECT * FROM blog_post WHERE author_id = '$author_id' ORDER BY id DESC LIMIT 10");
-                    
-                        if(!$post->count()) {
-                            echo 'No user';
+                        $post = DB::getInstance()->query("SELECT * FROM blog_post WHERE author_id = '$author_id' ORDER BY id DESC LIMIT $start, $per_page");
+
+                    } else {
+
+                        $paginate->pagination('3');
+                        $start = $paginate->start();
+                        $per_page = $paginate->perpage();
+                        $pages = $paginate->pages();
+                        $page = $paginate->page();
+
+                        $post = DB::getInstance()->query("SELECT * FROM blog_post ORDER BY id DESC LIMIT $start, $per_page");
+                    }
+
+                     if(!$post->count()) {
+                            //echo 'There are no posts to show';
                         } else {
                             //looping through the results
                             foreach($post->results() as $post) { 
-                        ?>
+?>
                                 <div class="entries-container">
                                 <div class="title-date-container">
                                     <h5><?php echo $post->post_date; ?></h5>
@@ -103,73 +116,49 @@
                                 </div>
                                 <div class="post-content-container">
                                     <p><?php echo $post->post_excerpt; ?></p>
-                                        <?php
+<?php
+                                        if($user->isLoggedIn()) {
                                             echo "<a href='update.php?id=".$post->id."'>Edit</a> &nbsp;";
                                             echo "<a href='delete.php?id=".$post->id."'>Delete</a>";
-                                        ?>
+                                        }
+?>
                                     </div>  
                                     <h2 class="devider"></h2>
                                 </div> 
-                <?php
-                            }
-
-                        } 
-                    } else {
-                        $post = DB::getInstance()->query("SELECT * FROM blog_post ORDER BY id DESC LIMIT 10");
-
-                        if(!$post->count()) {
-                            echo 'No user';
-                        } else {
-                            //echo 'OK!';
-                            //looping through the results
-                            foreach($post->results() as $post) {
-                ?>
-                                <div class="entries-container">
-                                <div class="title-date-container">
-                                    <h5><?php echo $post->post_date; ?></h5>
-                                    <h2><?php echo "<a href='single.php?id=".$post->id."'>".$post->post_title."</a> &nbsp;"; ?></h2>
-                                </div>
-                                <div class="post-content-container">
-                                    <p><?php echo $post->post_excerpt; ?></p>
-                                    </div>  
-                                    <h2 class="devider"></h2>
-                                </div> 
-                <?php
+<?php
                             }
                         } 
-                    }
-                ?>
-            
+?>
+
+ <?php
+                        $prev = $page - 1;
+                        $next = $page + 1;
+                        echo '<ul class="pager">';
+                        //Prev Pagination
+                        if (!($page <= 1)){
+                              echo "<li class='previous'><a href='index.php?page=$prev'>&larr; Older</a></li>";
+                        }
+
+                        if($pages >= 1){
+                            for($x=1; $x<=$pages; $x++){      
+                                if ($x == $page) {
+                                    $active_page = $x;
+                                }
+                            }
+                        }
+                       
+
+                        //Next Pagination
+                        if (!($page >= $pages)){
+                              echo "<li class='next'><a href='index.php?page=$next'>Newer &rarr;</a></li>"; 
+                        }
+                        echo '</ul>';
+                        echo  "<h1 class='page-number'>Page ".$active_page." of ".$pages."</h1>";
+                        
+?>
+    
                 
                     <?php if(isset($_SESSION['myemail'])) { ?>
-                     
-                        <?php if((isset($_SESSION['title_Err_Add'])) or (isset($_SESSION['message_Err_Add']))) { ?>
-                            <div class="bg-danger validation-errors">
-                            <p>The following errors are encountered</p>
-                                <ul>
-                                    <?php if ($_SESSION['title_Err_Add'] != ''){ ?>
-                                        <li> <?php echo $_SESSION['title_Err_Add']; ?> </li>
-                                    <?php } ?>
-                                    <?php if ($_SESSION['message_Err_Add'] != ''){ ?>
-                                        <li> <?php echo $_SESSION['message_Err_Add']; ?> </li>
-                                    <?php } ?>
-                                </ul>
-                            </div>
-                        <?php } ?>
-
-                        <?php if((isset($_SESSION['title_Err_Edit'])) or (isset($_SESSION['message_Err_Edit']))) { ?>
-                            <div class="bg-danger validation-errors">
-                            <p>The following errors are encountered</p>
-                                <ul>
-                                    <?php if ($_SESSION['title_Err_Edit'] != ''){ ?>
-                                        <li> <?php echo $_SESSION['title_Err_Edit']; ?> </li>
-                                    <?php } ?>
-                                    <?php if ($_SESSION['message_Err_Edit'] != ''){ ?>
-                                        <li> <?php echo $_SESSION['message_Err_Edit']; ?> </li>
-                                    <?php } ?>
-                                </ul>
-                            </div>
-                        <?php } ?>
 
                         <?php if(isset($_SESSION['edit_checker'])) { ?>
 
@@ -269,35 +258,7 @@
 
                     <?php } ?>
 
-                    <?php
-                        $prev = $page - 1;
-                        $next = $page + 1;
-                        echo '<ul class="pager">';
-                        //Prev Pagination
-                        if (!($page <= 1)){
-                              echo "<li class='previous'><a href='blog-home.php?page=$prev'>&larr; Older</a></li>";
-                        }
-
-                        if($pages >= 1){
-                            for($x=1; $x<=$pages; $x++){                                  
-                                if ($x == $page) {
-                                    $active_page = $x;
-                                }
-                            }
-                        }
-                       
-
-                        //Next Pagination
-                        if (!($page >= $pages)){
-
-                              echo "<li class='next'><a href='blog-home.php?page=$next'>Newer &rarr;</a></li>"; 
-                        }
-                        echo '</ul>';
-
-                        echo  "<h1 class='page-number'>Page ".$active_page." of ".$pages."</h1>";
-
-                        
-                    ?>
+                 
 
             
 
