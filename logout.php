@@ -3,5 +3,7 @@
 	
 	$user = new User();
 	$user->logout();
+	session_destroy();
 	Redirect::to('index.php');
+
 ?>

@@ -27,7 +27,7 @@
 				 	<h2><strong>User Login</strong></h2>
 				 </div>
 
-				 <?php 
+<?php 
 				 if(Input::exist()) {
 			    	if(Token::check(Input::get('token'))) {
 			    		$validate = new validate();
@@ -64,10 +64,8 @@
 			            }
 			    	}
 			    }
-			    ?>
+?>
 				 
-                
-
 				 <div class="form-group">
 				 	<label for="exampleInputEmail1">Email address</label>
 				    	<input type="email" name="email" class="form-control" id="exampleInputEmail1" value="<?php echo escape(Input::get('email')); ?>" placeholder="Enter your Email" >

@@ -2,9 +2,6 @@
 	require_once 'core/init.php';
 	// Header.php 
 	include_once('includes/partials/header.php');
-	
-
-	
 ?>
 
 	<div class="content-container">
@@ -16,7 +13,7 @@
 	                 <div class="form-header-top-container">
 	                    <h2><strong>Sign Up</strong></h2>
 	                 </div>
-	                 <?php 
+<?php 
 						if(Input::exist()) {
 							if(Token::check(Input::get('token'))) {
 							    //echo "submitted";
@@ -74,7 +71,7 @@
 							    }
 							}
 						}
-	                 ?>
+?>
 
 
 	                 <div class="form-group">
@@ -103,7 +100,6 @@
 	        </div>
 	    </div>
 	</div>  
-
 
 <!-- Footer -->
 <?php include_once('includes/partials/footer.php'); ?>

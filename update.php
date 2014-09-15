@@ -3,58 +3,65 @@
 
 	$user = new User();
     if($user->isLoggedIn()) {
-		if(isset($_GET['id'])) {
-			$id = $_GET['id'];
 
-		 //    $sql = "SELECT * FROM blog_post WHERE id = '$id'";
-	  //       $run_sql_query = mysqli_query($con, $sql);
-	  //     	while($row = mysqli_fetch_array($run_sql_query)) {
-	  //      		$post_title = $row['post_title'];
-			// 	$post_content = $row['post_content'];
-			// }
-		
-			// if($run_sql_query){
-			// 	$_SESSION['post_id'] = $id;
-			// 	$_SESSION['post_title'] = $post_title;
-			// 	$_SESSION['post_content'] = $post_content;
-			// 	$_SESSION['edit_checker'] = 'on';
-			// 	header('location:blog-home.php');
-			// }
+    	if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-			//$post = DB::getInstance()->get('blog_post', array('id', '=', $id));
+    		if(Input::exist()) {
+                if(Token::check(Input::get('token'))) {
+                    $validate = new validate();
+                    $validation = $validate->check($_POST, array(
+                        'title' => array(
+                            'required' => true
+                        ),
+                        'message' => array(
+                            'required' => true,
+                        )
+                    ));
 
+                    if($validation->passed()) {
+                        $post = new Post();
+                        try {
+                        	$id = Session::get('post_id');
+                        	$excerpt = implode(' ', array_slice(explode(' ', input::get('message')), 0, 50));
+                        	$post->update($id, array(
+							'post_title' => input::get('title'),
+							'post_content' => input::get('message'),
+							'post_excerpt' => $excerpt
+							));
+							unset($_SESSION['edit_checker']);
+							Redirect::to('index.php');
+                        } catch (Exception $e) {
+                             die($e->getMessage());
+                        }
+                        
+                    } else {
+						Redirect::to('index.php');
+                    }
+                }
+            }
 
-			// $post = new Post();
-			// //$post->get(array('id', '=', $id));
-			// if(!$post->count()) {
-			//  	echo 'No Data';
-			// } else {
-			// 	echo 'OK!';
-				
-			// 	//outputing a single result
-			// 	//echo $user->first()->author_name;
-			// }
+    	} else {
 
+			if(isset($_GET['id'])) {
+				$id = $_GET['id'];
+				$post = new Post();
+		        $search = $post->get($id);
 
-			$post = new Post();
-	        $search = $post->get($id);
-
-	        if($search) {
-	            //Redirect::to('index.php');
-	            echo $post->data()->id, '</br>';
-	            echo $post->data()->post_title;
-
-	        } else {
-	            echo 'Doesnt Exist';
-	        }
-
+		        if($search) { 
+		        	Session::delete('post_title_add');
+                    Session::delete('post_content_add'); 
+		            Session::put('edit_checker', 'on');
+		            Session::put('post_id', $id);
+		            Session::put('post_title', $post->data()->post_title);
+		            Session::put('post_content', $post->data()->post_content);
+		            Redirect::to('index.php');
+		        } else {
+		            echo 'Doesnt Exist';
+		        }
+			}
 		}
+
 	} else {
 		Redirect::to(404);
 	}
-	
-
-	//$user = DB::getInstance()->update('blog_post', 16, array(
-	// 	'author_name' => 'NewOOPsample'
-	// ));
 ?>

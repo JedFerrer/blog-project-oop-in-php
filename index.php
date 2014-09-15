@@ -44,6 +44,8 @@
                                             'post_excerpt' => $excerpt,
                                             'author_id' => $author_id
                                         ));
+                                        Session::delete('post_title_add');
+                                        Session::delete('post_content_add');
                                     } catch (Exception $e) {
                                         die($e->getMessage());
                                     }
@@ -54,6 +56,8 @@
                                     <p>The following errors are encountered</p>
                                         <ul>
 <?php
+                                            Session::put('post_title_add', Input::get('title'));
+                                            Session::put('post_content_add', Input::get('message'));
                                             foreach($validation->errors() as $error) {
                                                 echo '<li>', $error, '</li>';
                                             }
@@ -64,23 +68,23 @@
                                 }
                             }
                         }
-?>
-                        <form class="post-form" action="" method="POST">
+?>  
+                        <form class="post-form" action="<?php if(Session::exists('edit_checker')) { echo 'update.php'; } else { } ?>" method="POST">
                             <div class="form-group">
                                 <p>Title</p>
-                                <input type="text" class="form-control" name="title" maxlength="50" value="<?php if(isset($_SESSION['post_title_add'])) { echo $_SESSION['post_title_add']; } ?>" placeholder="Title Input">
+                                <input type="text" class="form-control" name="title" maxlength="50" value="<?php if (Session::exists('edit_checker')) { echo (Session::exists('post_title')) ?  Session::get('post_title') : ''; } else { echo (Session::exists('post_title_add')) ?  Session::get('post_title_add') : '';  } ?>" placeholder="Title Input">
                                 <div class="clear"></div>
                             </div>
                           
                             <div class="form-group">
                                 <p>Post</p>
-                                <textarea class="form-control" name="message" rows="3" maxlenght="500" placeholder="Post Input"><?php if(isset($_SESSION['post_title_add'])) { echo $_SESSION['post_content_add']; } ?></textarea>
+                                <textarea class="form-control" name="message" rows="3" maxlenght="500" placeholder="Post Input"><?php if (Session::exists('edit_checker')) { echo (Session::exists('post_content')) ?  Session::get('post_content') : ''; } else { echo (Session::exists('post_content_add')) ?  Session::get('post_content_add') : ''; } ?></textarea>
                                 <div class="clear"></div>
                             </div>
 
                             <div class="form-group">
                                 <input type="hidden" name="token" value="<?php echo token::generate(); ?>">
-                                <button type="submit" class="btn btn-default">Post</button>
+                                <button type="submit" class="btn btn-default"><?php if (Session::exists('edit_checker')) { echo 'Update'; } else { echo 'Post'; } ?></button>
                             </div>                        
                         </form>
 <?php
@@ -103,40 +107,37 @@
                         $post = DB::getInstance()->query("SELECT * FROM blog_post ORDER BY id DESC LIMIT $start, $per_page");
                     }
 
-                     if(!$post->count()) {
-                            //echo 'There are no posts to show';
-                        } else {
-                            //looping through the results
-                            foreach($post->results() as $post) { 
+                    if(!$post->count()) {
+                        //echo 'There are no posts to show';
+                    } else {
+                        //looping through the results
+                        foreach($post->results() as $post) { 
 ?>
-                                <div class="entries-container">
-                                <div class="title-date-container">
-                                    <h5><?php echo $post->post_date; ?></h5>
-                                    <h2><?php echo "<a href='single.php?id=".$post->id."'>".$post->post_title."</a> &nbsp;"; ?></h2>
-                                </div>
-                                <div class="post-content-container">
-                                    <p><?php echo $post->post_excerpt; ?></p>
+                            <div class="entries-container">
+                            <div class="title-date-container">
+                                <h5><?php echo $post->post_date; ?></h5>
+                                <h2><?php echo "<a href='single.php?id=".$post->id."'>".$post->post_title."</a> &nbsp;"; ?></h2>
+                            </div>
+                            <div class="post-content-container">
+                                <p><?php echo $post->post_excerpt; ?></p>
 <?php
-                                        if($user->isLoggedIn()) {
-                                            echo "<a href='update.php?id=".$post->id."'>Edit</a> &nbsp;";
-                                            echo "<a href='delete.php?id=".$post->id."'>Delete</a>";
-                                        }
+                                    if($user->isLoggedIn()) {
+                                        echo "<a href='update.php?id=".$post->id."'>Edit</a> &nbsp;";
+                                        echo "<a href='delete.php?id=".$post->id."'>Delete</a>";
+                                    }
 ?>
-                                    </div>  
-                                    <h2 class="devider"></h2>
-                                </div> 
+                                </div>  
+                                <h2 class="devider"></h2>
+                            </div> 
 <?php
-                            }
-                        } 
-?>
-
- <?php
+                        }
+                    } 
                         $prev = $page - 1;
                         $next = $page + 1;
                         echo '<ul class="pager">';
                         //Prev Pagination
                         if (!($page <= 1)){
-                              echo "<li class='previous'><a href='index.php?page=$prev'>&larr; Older</a></li>";
+                              echo "<li class='previous'><a href='index.php?page=$prev'>&larr; Newer</a></li>";
                         }
 
                         if($pages >= 1){
@@ -146,123 +147,15 @@
                                 }
                             }
                         }
-                       
 
                         //Next Pagination
                         if (!($page >= $pages)){
-                              echo "<li class='next'><a href='index.php?page=$next'>Newer &rarr;</a></li>"; 
+                              echo "<li class='next'><a href='index.php?page=$next'>Older &rarr;</a></li>"; 
                         }
                         echo '</ul>';
-                        echo  "<h1 class='page-number'>Page ".$active_page." of ".$pages."</h1>";
-                        
+                        echo  "<h1 class='page-number'>Page ".$active_page." of ".$pages."</h1>"; 
 ?>
-    
-                
-                    <?php if(isset($_SESSION['myemail'])) { ?>
-
-                        <?php if(isset($_SESSION['edit_checker'])) { ?>
-
-                            <?php //unset($_SESSION['edit_checker']);?>
-                            <form class="post-form" action="edit-post.php" method="POST">
-                                <div class="form-group">
-                                    <p>Title</p>
-                                    <input type="text" class="form-control" name="title" maxlength="50" value="<?php echo $_SESSION['post_title']; ?>" placeholder="Title Input">
-                                    <div class="clear"></div>
-                                </div>
-                              
-                                <div class="form-group">
-                                    <p>Post</p>
-                                    <textarea class="form-control" name="message" rows="3" maxlenght="500" placeholder="Post Content"><?php echo $_SESSION['post_content']; ?></textarea>
-                                    <div class="clear"></div>
-                                </div>
-
-                                <div class="form-group">
-                                    <button type="submit" class="btn btn-default">Update Post</button>
-                                </div>                        
-                            </form>
-
-                        <?php } else { ?>
-                           
-
-                            <form class="post-form" action="add-post.php" method="POST">
-                                <div class="form-group">
-                                    <p>Title</p>
-                                    <input type="text" class="form-control" name="title" maxlength="50" value="<?php if(isset($_SESSION['post_title_add'])) { echo $_SESSION['post_title_add']; } ?>" placeholder="Title Input">
-                                    <div class="clear"></div>
-                                </div>
-                              
-                                <div class="form-group">
-                                    <p>Post</p>
-                                    <textarea class="form-control" name="message" rows="3" maxlenght="500" placeholder="Post Input"><?php if(isset($_SESSION['post_title_add'])) { echo $_SESSION['post_content_add']; } ?></textarea>
-                                    <div class="clear"></div>
-                                </div>
-
-                                <div class="form-group">
-                                    <button type="submit" class="btn btn-default">Post</button>
-                                </div>                        
-                            </form>
-
-                        <?php } ?>
-
-                    <?php } ?>
-
-                    <?php 
-
-                    $per_page = 3;
-                    if(isset($_SESSION['myemail'])) {
-                        $author_id = $_SESSION['author_id'];
-                        $pages_query = ("SELECT * FROM blog_post WHERE author_id = '$author_id'");
-                    } else {
-                        $pages_query = ("SELECT * FROM blog_post");
-                    }
-                    $run_pages_query = mysqli_query($con, $pages_query);
-                    $data_count = mysqli_num_rows($run_pages_query);
-                    $pages = ceil($data_count / $per_page);
-
-                    $page = (isset($_GET['page'])) ? (int)$_GET['page'] : 1;
-                    $start = ($page - 1) * $per_page;
-
-
-                        if(isset($_SESSION['myemail'])) {
-                            $author_id = $_SESSION['author_id'];
-                            //$sql = "SELECT * FROM blog_post WHERE author_id = '$author_id' ORDER BY id DESC LIMIT 10";
-                            $sql = "SELECT * FROM blog_post WHERE author_id = '$author_id' ORDER BY id DESC LIMIT $start, $per_page";
-                            $run_sql_query = mysqli_query($con, $sql);
-
-                        } else {
-                            //$sql = "SELECT * FROM blog_post ORDER BY id DESC LIMIT 10";
-                            $sql = "SELECT * FROM blog_post ORDER BY id DESC LIMIT $start, $per_page";
-                            $run_sql_query = mysqli_query($con, $sql);
-                            
-                        }
-
-                        while($query2 = mysqli_fetch_array($run_sql_query)) {
-                    ?>
-
-                            <div class="entries-container">
-                                <div class="title-date-container">
-                                    <h5><?php echo $query2['post_date']; ?></h5>
-                                    <h2><?php echo "<a href='single.php?id=".$query2['id']."'>".$query2['post_title']."</a> &nbsp;"; ?></h2>
-                                </div>
-                                <div class="post-content-container">
-                                    <p><?php echo $query2['post_excerpt']; ?></p>
-                                    <?php 
-                                        if(isset($_SESSION['myemail'])) { 
-                                            echo "<a href='edit-post.php?id=".$query2['id']."'>Edit</a> &nbsp;";
-                                            echo "<a href='delete-post.php?id=".$query2['id']."'>Delete</a>";
-                                        }
-                                    ?>
-                                </div>  
-                                <h2 class="devider"></h2>
-                            </div> 
-
-                    <?php } ?>
-
-                 
-
-            
-
-                </div>
+            </div>
             </div>
         </div>  
     </div>
